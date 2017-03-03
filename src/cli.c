@@ -26,8 +26,6 @@ static u8* put_pixels_buffer;
 static put_pixels_func* put_pixels;
 
 void opc_serve_handler(u8 address, u16 count, pixel* pixels) {
-  fprintf(stderr, "%d ", count);
-  fflush(stderr);
   put_pixels(put_pixels_buffer, count, pixels);
 }
 
@@ -41,7 +39,7 @@ int opc_open_spi(char* spi_device_path, u32 spi_speed_hz) {
 int opc_serve_main(u16 port, put_pixels_func* put, u8* buffer) {
   pixel diagnostic_pixels[5];
   time_t t;
-  u16 inactivity_ms = 0;
+  u32 inactivity_ms = 0;
   int i;
 
   opc_source s = opc_new_source(port);
