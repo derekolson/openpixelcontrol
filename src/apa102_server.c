@@ -12,17 +12,23 @@ specific language governing permissions and limitations under the License. */
 #include "cli.h"
 #include "opc.h"
 #include "spi.h"
+#include <math.h>
 
 #define APA102_BRIGHTNESS 31  /* overall brightness level, 0 to 31 */
 
 static u8 buffer[4 + OPC_MAX_PIXELS_PER_MESSAGE * 4];
 static int spi_fd;
 
+static u8 gamma_table_red[256];
+static u8 gamma_table_green[256];
+static u8 gamma_table_blue[256];
+
 void apa102_put_pixels(u8* buffer, u16 count, pixel* pixels) {
   int i;
   pixel* p;
   u8* d;
   u8 flag;
+  u8 r, g, b;
 
   d = buffer;
   *d++ = 0;
@@ -30,19 +36,33 @@ void apa102_put_pixels(u8* buffer, u16 count, pixel* pixels) {
   *d++ = 0;
   *d++ = 0;
   for (i = 0, p = pixels; i < count; i++, p++) {
+    r = gamma_table_red[p->r];
+    g = gamma_table_green[p->g];
+    b = gamma_table_blue[p->b];
+
     *d++ = 0xe0 + APA102_BRIGHTNESS;
-    *d++ = p->b;
-    *d++ = p->g;
-    *d++ = p->r;
+    *d++ = b;
+    *d++ = g;
+    *d++ = r;
   }
   spi_write(spi_fd, buffer, d - buffer);
+}
+
+void set_gamma(double gamma_red, double gamma_green, double gamma_blue) {
+  int i;
+  for(i=0; i<256; i++) {
+    gamma_table_red[i] = (uint8_t)(pow(i/255.0,gamma_red)*255.0+0.5);
+    gamma_table_green[i] = (uint8_t)(pow(i/255.0,gamma_green)*255.0+0.5);
+    gamma_table_blue[i] = (uint8_t)(pow(i/255.0,gamma_blue)*255.0+0.5);
+  }
 }
 
 int main(int argc, char** argv) {
   u16 port = OPC_DEFAULT_PORT;
   u32 spi_speed_hz = 8000000;
-  char* spi_device_path = "/dev/spidev1.0";
+  char* spi_device_path = "/dev/spidev0.0";
 
+  set_gamma(4, 4, 4);
   get_speed_and_port(&spi_speed_hz, &port, argc, argv);
   if (argc > 3) {
     spi_device_path = argv[3];
