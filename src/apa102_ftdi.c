@@ -11,7 +11,7 @@ specific language governing permissions and limitations under the License. */
 
 #include "cli.h"
 #include "opc.h"
-#include "spi.h"
+#include "spi_ftdi.h"
 #include <math.h>
 
 #define APA102_BRIGHTNESS 31  /* overall brightness level, 0 to 31 */
@@ -45,7 +45,7 @@ void apa102_put_pixels(u8* buffer, u16 count, pixel* pixels) {
     *d++ = g;
     *d++ = r;
   }
-  spi_write(spi_fd, buffer, d - buffer);
+  spi_write(buffer, d - buffer);
 }
 
 void set_gamma(double gamma_red, double gamma_green, double gamma_blue) {
@@ -60,13 +60,18 @@ void set_gamma(double gamma_red, double gamma_green, double gamma_blue) {
 int main(int argc, char** argv) {
   u16 port = OPC_DEFAULT_PORT;
   u32 spi_speed_hz = SPI_DEFAULT_SPEED_HZ;
-  char* spi_device_path = "/dev/spidev0.0";
+  char* spi_device_path = "fooserial";
 
   set_gamma(2.2, 2.2, 2.2);
   get_speed_and_port(&spi_speed_hz, &port, argc, argv);
   if (argc > 3) {
     spi_device_path = argv[3];
   }
-  spi_fd = opc_open_spi(spi_device_path, spi_speed_hz);
-  return opc_serve_main(port, apa102_put_pixels, buffer);
+  
+  if(init_ftdi(spi_device_path, spi_speed_hz) > -1) {
+    opc_serve_main(port, apa102_put_pixels, buffer);
+  }
+
+  close_ftdi();
+  return 0;
 }

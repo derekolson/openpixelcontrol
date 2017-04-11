@@ -30,6 +30,10 @@ bin/apa102_server: src/apa102_server.c src/opc_server.c src/spi.c src/cli.c
 	mkdir -p bin
 	gcc ${CFLAGS} -o $@ $^
 
+bin/apa102_ftdi: src/apa102_ftdi.c src/opc_server.c src/spi_ftdi.c src/cli.c
+	mkdir -p bin
+	gcc ${CFLAGS} -I/usr/local/include/libftdi1/ -lftdi1 -o $@ $^
+
 bin/ws2801_server: src/ws2801_server.c src/opc_server.c src/spi.c src/cli.c
 	mkdir -p bin
 	gcc ${CFLAGS} -o $@ $^

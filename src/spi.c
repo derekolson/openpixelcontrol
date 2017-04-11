@@ -63,3 +63,10 @@ int init_spidev(char dev[], u32 spi_speed_hz) {
   fprintf(stderr, "Failed to set SPI parameters\n");
   return -1;
 }
+
+int opc_open_spi(char* spi_device_path, u32 spi_speed_hz) {
+  int spi_fd = init_spidev(spi_device_path, spi_speed_hz);
+  if (spi_fd < 0) exit(1);
+  fprintf(stderr, "Device %s: %.2f MHz\n", spi_device_path, spi_speed_hz*1e-6);
+  return spi_fd;
+}

@@ -10,8 +10,9 @@ CONDITIONS OF ANY KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations under the License. */
 
 #include "cli.h"
-#include "spi.h"
 #include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
 
 void get_speed_and_port(u32* speed, u16* port, int argc, char** argv) {
   if (argc > 1 && speed) {
@@ -27,13 +28,6 @@ static put_pixels_func* put_pixels;
 
 void opc_serve_handler(u8 address, u16 count, pixel* pixels) {
   put_pixels(put_pixels_buffer, count, pixels);
-}
-
-int opc_open_spi(char* spi_device_path, u32 spi_speed_hz) {
-  int spi_fd = init_spidev(spi_device_path, spi_speed_hz);
-  if (spi_fd < 0) exit(1);
-  fprintf(stderr, "Device %s: %.2f MHz\n", spi_device_path, spi_speed_hz*1e-6);
-  return spi_fd;
 }
 
 int opc_serve_main(u16 port, put_pixels_func* put, u8* buffer) {
