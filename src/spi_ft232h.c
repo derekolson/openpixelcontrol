@@ -16,28 +16,9 @@ specific language governing permissions and limitations under the License. */
 static struct mpsse_context *ftdi = NULL;
 
 void spi_write(u8 *tx, u32 len) {
-  //spi_buf_w(tx, len);
-  // int block;
-
-  // while (len) {
-  //   block = len > SPI_MAX_WRITE ? SPI_MAX_WRITE : len;
-  //   // if (spi_buf_w(tx, block) < block) {
-  //   //   fprintf(stderr, "Write failed\n");
-  //   // }
-  //   spi_buf_w(tx, block);
-  //   tx += block;
-  //   len -= block;
-  // }
-
   Start(ftdi);
   Write(ftdi, tx, len-1);
   Stop(ftdi);
-
-  // for(int i=0; i<30; i++) {
-  //   printf("%d ", (unsigned char)tx[i]);
-  // }
-  // printf("\n"); 
-  
 }
 
 int init_ftdi(char dev[], u32 spi_speed_hz) {
@@ -49,24 +30,6 @@ int init_ftdi(char dev[], u32 spi_speed_hz) {
   if(ftdi->open) {
     printf("%s initialized at %dHz (SPI mode 0)\n", GetDescription(ftdi), GetClock(ftdi));
   }
-
-  // if(ftdi_usb_open(ftdi, 0x0403, 0x6001) < 0) {
-  //   fprintf(stderr, "Can't open ftdi usb device\n");
-  //   return -1;
-  // }
-
-  // if(ftdi_set_bitmode(ftdi, CLK | MOSI, BITMODE_BITBANG) < 0) {
-  //   fprintf(stderr, "Can't set ftdi bitmode\n");
-  //   return -1;
-  // }
-  
-  // if(ftdi_set_baudrate(ftdi, spi_speed_hz / FTDI_BAUDRATE_MULTIPLIER) < 0) {
-  //   fprintf(stderr, "Can't set ftdi baudrate: %dHz\n", spi_speed_hz);
-  //   return -1;
-  // }
-
-  // fprintf(stderr, "Initialized FTDI - Baudrate: %dHz\n", ftdi->baudrate);
-  //ftdi_out_buf = calloc(1, SPI_MAX_WRITE * 8 * BYTES_PER_BIT);
 
   return 0;
 }
