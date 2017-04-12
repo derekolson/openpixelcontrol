@@ -26,7 +26,7 @@ void spi_write(int deviceNum, u8 *tx, u32 len) {
 
 int init_ftdi(char dev[], u32 spi_speed_hz) {
   // struct mpsse_context *device = MPSSE(SPI0, spi_speed_hz, MSB);
-  struct mpsse_context *device = OpenIndex(0x0403, 0x6014, SPI0, spi_speed_hz, MSB, IFACE_A, NULL, NULL, deviceIndex);
+  struct mpsse_context *device = Open(0x0403, 0x6014, SPI0, spi_speed_hz, MSB, IFACE_A, NULL, dev);
 
   if(device == NULL) {
     fprintf(stderr, "Error initializing device: %s\n", dev);
