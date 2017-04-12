@@ -19,15 +19,13 @@ specific language governing permissions and limitations under the License. */
 #define BYTES_PER_BIT 3
 #define SPI_BITS_PER_WORD 8
 #define SPI_MAX_WRITE 4096
-#define SPI_DEFAULT_SPEED_HZ 3000000
+#define SPI_DEFAULT_SPEED_HZ 8000000
 #define FTDI_BAUDRATE_MULTIPLIER 4
 
 #define CLK 0x08  /* CTS (brown wire on FTDI cable) */
 #define MOSI 0x14 /* DTR */
 
-// void digitalWrite(uint8_t pin, uint8_t value);
-// void spi_byte(uint8_t byte);
-void spi_write(u8 *tx, u32 len);
+void spi_write(int deviceNum, u8 *tx, u32 len);
 
 int init_ftdi(char dev[], u32 spi_speed_hz);
 int close_ftdi();

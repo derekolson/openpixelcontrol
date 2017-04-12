@@ -23,6 +23,19 @@ static u8 gamma_table_red[256];
 static u8 gamma_table_green[256];
 static u8 gamma_table_blue[256];
 
+typedef struct {
+  char *serial;
+  u16 numLeds;
+} ft232h_device;
+
+
+ft232h_device ft232h[] = {
+  {.serial = "0", .numLeds = 400},
+  // {.serial = "1", .numLeds = 400}
+};
+
+int numDevices = sizeof(ft232h) / sizeof(ft232h_device);
+
 void apa102_put_pixels(u8* buffer, u16 count, pixel* pixels) {
   int i;
   pixel* p;
@@ -30,22 +43,26 @@ void apa102_put_pixels(u8* buffer, u16 count, pixel* pixels) {
   u8 flag;
   u8 r, g, b;
 
-  d = buffer;
-  *d++ = 0;
-  *d++ = 0;
-  *d++ = 0;
-  *d++ = 0;
-  for (i = 0, p = pixels; i < count; i++, p++) {
-    r = gamma_table_red[p->r];
-    g = gamma_table_green[p->g];
-    b = gamma_table_blue[p->b];
+  for(int j=0; j<numDevices; j++) {
+    int numLeds = ft232h[j].numLeds;
+    d = buffer;
+    *d++ = 0;
+    *d++ = 0;
+    *d++ = 0;
+    *d++ = 0;
+    for (i = 0, p = pixels; i < numLeds; i++, p++) {
+      r = gamma_table_red[p->r];
+      g = gamma_table_green[p->g];
+      b = gamma_table_blue[p->b];
 
-    *d++ = 0xe0 + APA102_BRIGHTNESS;
-    *d++ = b;
-    *d++ = g;
-    *d++ = r;
+      *d++ = 0xe0 + APA102_BRIGHTNESS;
+      *d++ = b;
+      *d++ = g;
+      *d++ = r;
+    }
+    spi_write(j, buffer, d - buffer);
+    pixels += numLeds;
   }
-  spi_write(buffer, d - buffer);
 }
 
 void set_gamma(double gamma_red, double gamma_green, double gamma_blue) {
@@ -67,10 +84,12 @@ int main(int argc, char** argv) {
   if (argc > 3) {
     spi_device_path = argv[3];
   }
-  
-  if(init_ftdi(spi_device_path, spi_speed_hz) > -1) {
-    opc_serve_main(port, apa102_put_pixels, buffer);
+
+  for(int i=0; i<numDevices; i++) {
+    init_ftdi(ft232h[i].serial, spi_speed_hz);
   }
+
+  opc_serve_main(port, apa102_put_pixels, buffer);
 
   close_ftdi();
   return 0;

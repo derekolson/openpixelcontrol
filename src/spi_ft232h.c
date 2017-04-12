@@ -13,28 +13,41 @@ specific language governing permissions and limitations under the License. */
 #include <mpsse.h>
 #include <inttypes.h>
 
-static struct mpsse_context *ftdi = NULL;
+#define MAX_DEVICES 2
+static int deviceIndex = 0;
 
-void spi_write(u8 *tx, u32 len) {
-  Start(ftdi);
-  Write(ftdi, tx, len-1);
-  Stop(ftdi);
+static struct mpsse_context *devices[MAX_DEVICES];
+
+void spi_write(int deviceNum, u8 *tx, u32 len) {
+  Start(devices[deviceNum]);
+  Write(devices[deviceNum], tx, len);
+  Stop(devices[deviceNum]);
 }
 
 int init_ftdi(char dev[], u32 spi_speed_hz) {
-  if((ftdi = MPSSE(SPI0, TWELVE_MHZ, MSB)) == NULL) {
-    fprintf(stderr, "Error initializing ftdi\n");
+  // struct mpsse_context *device = MPSSE(SPI0, spi_speed_hz, MSB);
+  struct mpsse_context *device = OpenIndex(0x0403, 0x6014, SPI0, spi_speed_hz, MSB, IFACE_A, NULL, NULL, deviceIndex);
+
+  if(device == NULL) {
+    fprintf(stderr, "Error initializing device: %s\n", dev);
     return -1;
   }
-  
-  if(ftdi->open) {
-    printf("%s initialized at %dHz (SPI mode 0)\n", GetDescription(ftdi), GetClock(ftdi));
+
+  if(device->open) {
+    printf("%s initialized at %dHz (SPI mode 0)\n", GetDescription(device), GetClock(device));
+  } else {
+    fprintf(stderr, "Error opening device: %s\n", dev);
+    return -1;
   }
 
-  return 0;
+  devices[deviceIndex] = device;
+  deviceIndex++;
+
+  return deviceIndex - 1;
 }
 
-int close_ftdi() {
-  Close(ftdi);
+int close_ftdi(int deviceIndex) {
+  Close(devices[deviceIndex]);
+  devices[deviceIndex] = NULL;
   return 0;
 }
