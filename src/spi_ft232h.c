@@ -25,25 +25,27 @@ void spi_write(int deviceNum, u8 *tx, u32 len) {
 }
 
 int init_ftdi(char dev[], u32 spi_speed_hz) {
+  int retVal = -1;
   // struct mpsse_context *device = MPSSE(SPI0, spi_speed_hz, MSB);
   struct mpsse_context *device = Open(0x0403, 0x6014, SPI0, spi_speed_hz, MSB, IFACE_A, NULL, dev);
 
   if(device == NULL) {
     fprintf(stderr, "Error initializing device: %s\n", dev);
-    return -1;
+    retVal = -1;
   }
 
   if(device->open) {
-    printf("%s initialized at %dHz (SPI mode 0)\n", GetDescription(device), GetClock(device));
+    printf("Device: %s initialized at %dHz (SPI mode 0)\n", dev, GetClock(device));
+    retVal = deviceIndex;
   } else {
     fprintf(stderr, "Error opening device: %s\n", dev);
-    return -1;
+    retVal = -1;
   }
 
   devices[deviceIndex] = device;
   deviceIndex++;
 
-  return deviceIndex - 1;
+  return retVal;
 }
 
 int close_ftdi(int deviceIndex) {

@@ -30,11 +30,12 @@ typedef struct {
 
 
 ft232h_device ft232h[] = {
-  {.serial = "0", .numLeds = 400},
-  // {.serial = "1", .numLeds = 400}
+  {.serial = "letterO", .numLeds = 600},
+  {.serial = "letterD", .numLeds = 540}
 };
 
 int numDevices = sizeof(ft232h) / sizeof(ft232h_device);
+int *activeDevice;
 
 void apa102_put_pixels(u8* buffer, u16 count, pixel* pixels) {
   int i;
@@ -60,7 +61,14 @@ void apa102_put_pixels(u8* buffer, u16 count, pixel* pixels) {
       *d++ = g;
       *d++ = r;
     }
-    spi_write(j, buffer, d - buffer);
+
+    for (i = 0; i < 300; i++) {
+      *d++ = 0;
+    }
+
+    if(activeDevice[j]){
+      spi_write(j, buffer, d - buffer);
+    }
     pixels += numLeds;
   }
 }
@@ -85,12 +93,20 @@ int main(int argc, char** argv) {
     spi_device_path = argv[3];
   }
 
+  activeDevice = (int *) malloc(numDevices * sizeof(int));
+
   for(int i=0; i<numDevices; i++) {
-    init_ftdi(ft232h[i].serial, spi_speed_hz);
+    if(init_ftdi(ft232h[i].serial, spi_speed_hz) != -1) {
+      activeDevice[i] = 1;
+    } else {
+      activeDevice[i] = 0;
+    }
   }
 
   opc_serve_main(port, apa102_put_pixels, buffer);
 
   close_ftdi();
+  free(activeDevice);
+  activeDevice = NULL;
   return 0;
 }
