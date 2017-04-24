@@ -35,7 +35,6 @@ ft232h_device ft232h[] = {
 };
 
 int numDevices = sizeof(ft232h) / sizeof(ft232h_device);
-int *activeDevice;
 
 void apa102_put_pixels(u8* buffer, u16 count, pixel* pixels) {
   int i;
@@ -66,9 +65,7 @@ void apa102_put_pixels(u8* buffer, u16 count, pixel* pixels) {
       *d++ = 0;
     }
 
-    if(activeDevice[j]){
-      spi_write(j, buffer, d - buffer);
-    }
+    spi_write(j, buffer, d - buffer);
     pixels += numLeds;
   }
 }
@@ -93,20 +90,15 @@ int main(int argc, char** argv) {
     spi_device_path = argv[3];
   }
 
-  activeDevice = (int *) malloc(numDevices * sizeof(int));
-
   for(int i=0; i<numDevices; i++) {
-    if(init_ftdi(ft232h[i].serial, spi_speed_hz) != -1) {
-      activeDevice[i] = 1;
-    } else {
-      activeDevice[i] = 0;
-    }
+    init_ftdi(ft232h[i].serial, spi_speed_hz);
   }
 
   opc_serve_main(port, apa102_put_pixels, buffer);
 
-  close_ftdi();
-  free(activeDevice);
-  activeDevice = NULL;
+  for(int i=0; i<numDevices; i++) {
+    close_ftdi(i);
+  }
+
   return 0;
 }

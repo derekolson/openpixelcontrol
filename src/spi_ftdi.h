@@ -28,6 +28,6 @@ specific language governing permissions and limitations under the License. */
 void spi_write(int deviceNum, u8 *tx, u32 len);
 
 int init_ftdi(char dev[], u32 spi_speed_hz);
-int close_ftdi();
+int close_ftdi(int deviceNum);
 
 #endif /* SPI_H */

@@ -19,6 +19,8 @@ static int deviceIndex = 0;
 static struct mpsse_context *devices[MAX_DEVICES];
 
 void spi_write(int deviceNum, u8 *tx, u32 len) {
+  if(devices[deviceNum] == NULL) return;
+
   Start(devices[deviceNum]);
   Write(devices[deviceNum], tx, len);
   Stop(devices[deviceNum]);
@@ -43,6 +45,11 @@ int init_ftdi(char dev[], u32 spi_speed_hz) {
   }
 
   devices[deviceIndex] = device;
+  
+  if(retVal == -1) {
+    close_ftdi(deviceIndex);
+  }
+
   deviceIndex++;
 
   return retVal;
