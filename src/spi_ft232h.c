@@ -22,7 +22,7 @@ void spi_write(int deviceNum, u8 *tx, u32 len) {
   if(devices[deviceNum] == NULL) return;
 
   Start(devices[deviceNum]);
-  Write(devices[deviceNum], tx, len);
+  FastWrite(devices[deviceNum], tx, len);
   Stop(devices[deviceNum]);
 }
 
