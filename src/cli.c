@@ -33,7 +33,6 @@ void opc_serve_handler(u8 address, u16 count, pixel* pixels) {
 int opc_serve_main(u16 port, put_pixels_func* put, u8* buffer) {
   pixel diagnostic_pixels[5];
   time_t t;
-  u32 inactivity_ms = 0;
   int i;
 
   opc_source s = opc_new_source(port);
@@ -45,23 +44,20 @@ int opc_serve_main(u16 port, put_pixels_func* put, u8* buffer) {
   put_pixels = put;
   put_pixels_buffer = buffer;
   for (i = 0; i < 5; i++) {
-      diagnostic_pixels[i].r = 0;
-      diagnostic_pixels[i].g = 0;
-      diagnostic_pixels[i].b = 0;
+    diagnostic_pixels[i].r = 0;
+    diagnostic_pixels[i].g = 0;
+    diagnostic_pixels[i].b = 0;
   }
-  while (inactivity_ms < INACTIVITY_TIMEOUT_MS) {
-      if (opc_receive(s, opc_serve_handler, DIAGNOSTIC_TIMEOUT_MS)) {
-          inactivity_ms = 0;
-      } else {
-          inactivity_ms += DIAGNOSTIC_TIMEOUT_MS;
-          t = time(NULL);
-          diagnostic_pixels[0].r = (t % 3 == 0) ? 64 : 0;
-          diagnostic_pixels[0].g = (t % 3 == 1) ? 64 : 0;
-          diagnostic_pixels[0].b = (t % 3 == 2) ? 64 : 0;
-          put_pixels(buffer, 5, diagnostic_pixels);
-      }
+
+  while (1) {
+    if (!opc_receive(s, opc_serve_handler, DIAGNOSTIC_TIMEOUT_MS)) {
+      t = time(NULL);
+      diagnostic_pixels[0].r = (t % 3 == 0) ? 64 : 0;
+      diagnostic_pixels[0].g = (t % 3 == 1) ? 64 : 0;
+      diagnostic_pixels[0].b = (t % 3 == 2) ? 64 : 0;
+      put_pixels(buffer, 5, diagnostic_pixels);
+    }
   }
-  fprintf(stderr, "Exiting after %d ms of inactivity\n",
-          INACTIVITY_TIMEOUT_MS);
+
   return 0;
 }
