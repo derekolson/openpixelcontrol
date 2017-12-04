@@ -34,7 +34,11 @@ bin/apa102_ftdi: src/apa102_ftdi.c src/opc_server.c src/spi_ftdi.c src/cli.c
 	mkdir -p bin
 	gcc ${CFLAGS} -I/usr/local/include/libftdi1/ -lftdi1 -o $@ $^
 
-bin/apa102_ft232h: src/apa102_ftdi.c src/opc_server.c src/spi_ft232h.c src/cli.c
+bin/opc_letters: src/apa102_ftdi.c src/opc_server.c src/spi_ft232h.c src/cli.c
+	mkdir -p bin
+	gcc ${CFLAGS} -I/usr/local/include/libftdi1/ -lftdi1 -lmpsse -o $@ $^
+
+bin/opc_trains: src/apa102_ftdi.c src/opc_server.c src/spi_ft232h.c src/cli.c
 	mkdir -p bin
 	gcc ${CFLAGS} -I/usr/local/include/libftdi1/ -lftdi1 -lmpsse -o $@ $^
 

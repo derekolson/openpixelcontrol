@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License. */
 #include <mpsse.h>
 #include <inttypes.h>
 
-#define MAX_DEVICES 2
+#define MAX_DEVICES 12
 static int deviceIndex = 0;
 
 static struct mpsse_context *devices[MAX_DEVICES];

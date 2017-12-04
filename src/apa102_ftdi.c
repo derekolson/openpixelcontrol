@@ -31,7 +31,17 @@ typedef struct {
 
 ft232h_device ft232h[] = {
   {.serial = "letterO", .numLeds = 600},
-  {.serial = "letterD", .numLeds = 540}
+  {.serial = "letterD", .numLeds = 541},
+  //{.serial = "trOuter", .numLeds = 122},
+  //{.serial = "trRed", .numLeds = 146},
+  //{.serial = "trOrange", .numLeds = 149},
+  //{.serial = "trInner", .numLeds = 114},
+  //{.serial = "trGreenLow", .numLeds = 73},
+  //{.serial = "trBrown", .numLeds = 92},
+  //{.serial = "trPurple", .numLeds = 61},
+  //{.serial = "trGreenUp", .numLeds = 122},
+  //{.serial = "trPink", .numLeds = 169},
+  //{.serial = "trBlue", .numLeds = 312}
 };
 
 int numDevices = sizeof(ft232h) / sizeof(ft232h_device);
@@ -44,12 +54,15 @@ void apa102_put_pixels(u8* buffer, u16 count, pixel* pixels) {
   u8 r, g, b;
 
   for(int j=0; j<numDevices; j++) {
-    int numLeds = ft232h[j].numLeds;
+    u16 numLeds = ft232h[j].numLeds;
+    numLeds = numLeds < count ? numLeds : count;
+
     d = buffer;
     *d++ = 0;
     *d++ = 0;
     *d++ = 0;
     *d++ = 0;
+
     for (i = 0, p = pixels; i < numLeds; i++, p++) {
       r = gamma_table_red[p->r];
       g = gamma_table_green[p->g];
@@ -67,6 +80,7 @@ void apa102_put_pixels(u8* buffer, u16 count, pixel* pixels) {
 
     spi_write(j, buffer, d - buffer);
     pixels += numLeds;
+    count -= numLeds;
   }
 }
 
@@ -82,13 +96,9 @@ void set_gamma(double gamma_red, double gamma_green, double gamma_blue) {
 int main(int argc, char** argv) {
   u16 port = OPC_DEFAULT_PORT;
   u32 spi_speed_hz = SPI_DEFAULT_SPEED_HZ;
-  char* spi_device_path = "fooserial";
 
   set_gamma(2.2, 2.2, 2.2);
   get_speed_and_port(&spi_speed_hz, &port, argc, argv);
-  if (argc > 3) {
-    spi_device_path = argv[3];
-  }
 
   for(int i=0; i<numDevices; i++) {
     init_ftdi(ft232h[i].serial, spi_speed_hz);
