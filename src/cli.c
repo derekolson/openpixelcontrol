@@ -25,9 +25,24 @@ void get_speed_and_port(u32* speed, u16* port, int argc, char** argv) {
 
 static u8* put_pixels_buffer;
 static put_pixels_func* put_pixels;
+static int updates = 0;
+static uint32_t lastTime = 0;
+
+void showInfo() {
+  updates++;
+  uint32_t t = time(NULL);
+
+  // Show approximate updates-per-second
+  if(t >= lastTime + 1) {
+    fprintf(stderr, "\t%i updates/sec\r", updates);
+    lastTime = t;
+    updates = 0;
+  }
+}
 
 void opc_serve_handler(u8 address, u16 count, pixel* pixels) {
   put_pixels(put_pixels_buffer, count, pixels);
+  showInfo();
 }
 
 int opc_serve_main(u16 port, put_pixels_func* put, u8* buffer) {
@@ -50,12 +65,8 @@ int opc_serve_main(u16 port, put_pixels_func* put, u8* buffer) {
   }
 
   while (1) {
+    showInfo();
     if (!opc_receive(s, opc_serve_handler, DIAGNOSTIC_TIMEOUT_MS)) {
-      t = time(NULL);
-      diagnostic_pixels[0].r = (t % 3 == 0) ? 64 : 0;
-      diagnostic_pixels[0].g = (t % 3 == 1) ? 64 : 0;
-      diagnostic_pixels[0].b = (t % 3 == 2) ? 64 : 0;
-      put_pixels(buffer, 5, diagnostic_pixels);
     }
   }
 
